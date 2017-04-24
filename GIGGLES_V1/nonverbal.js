@@ -30,6 +30,7 @@ var maxEyeHeight = 40;
 var curEyeHeight = maxEyeHeight;
 var curEyeColor1 = "white"
 var curEyeColor2 = "black"
+var curEyeColor3 = "red"
 var eyeOpenTime = 0;
 var timeBtwBlinks = 4000;
 var blinkUpdateTime = 200;                    
@@ -39,6 +40,9 @@ var numFramesDrawn = 0;
 var curFPS = 0;
 var jumping = false;
 var tickling = false;
+var firstMove = false;
+var waitingtime = 5000;
+var recording = false;
 
 // initialize global variable showing whether tickle audio is playing --maxim
 var tickle_audio_playing = false
@@ -53,22 +57,36 @@ var audio7 = new Audio('audio/good.mp3');
 var audio8 = new Audio('audio/bad.mp3');
 var audio9 = new Audio('audio/notsure.mp3');
 var audio10 = new Audio('audio/sohappy.mp3');
-var audio11 = new Audio('audio/touch.mp3');
 var audio12 = new Audio('audio/bad2.mp3');
+
+var audiotip1 = new Audio('audio/touch.mp3');
+var audiotip2 = new Audio('audio/tip2.mp3');
+var audiotip3 = new Audio('audio/tip3.mp3');
+
 
 /* add event listeners to each audio: when audio ends, 
  * tickle_audio_playing variable is set to false --maxim */
-audio1.addEventListener('ended', function() {
-  this.currentTime = 0;
-  tickle_audio_playing = false
-  }, false);
+// audio1.addEventListener('ended', function() {
+//   this.currentTime = 0;
+//   tickle_audio_playing = false
+//   }, false);
 
-audio2.addEventListener('ended', function() {
-  this.currentTime = 0;
-  tickle_audio_playing = false
-  }, false);
+// audio2.addEventListener('ended', function() {
+//   this.currentTime = 0;
+//   tickle_audio_playing = false
+//   }, false);
 
 var audioArray=[audio1, audio2, audio3, audio4];
+var audioArraytip=[audiotip1, audiotip2, audiotip3];
+
+for(i=0; i<audioArray.length;i++) {
+  var audio = audioArray[i]
+  audio.addEventListener('ended', function() {
+  this.currentTime = 0;
+  tickle_audio_playing = false
+  }, false);
+}
+
 
 function updateFPS() {
   
@@ -139,21 +157,21 @@ function redraw() {
   canvas.width = canvas.width; // clears the canvas 
 
   if (jumping) {
-  audio5.play();
-}
+    audio5.play();
+  }
 
-if (tickling && !tickle_audio_playing) {
+  if (tickling && !tickle_audio_playing) {
 
   // verify that ranom choice of audio actually works --maxim
-  console.log("audioArray length: " + audioArray.length)
-  var random_choice = Math.floor(Math.random() * audioArray.length)
-  console.log("Random choice: " + random_choice)
+    //console.log("audioArray length: " + audioArray.length)
+    var random_choice = Math.floor(Math.random() * audioArray.length)
+    console.log("Random choice: " + random_choice)
 
   // set tickle_audio_playing to true, so that we do not enter here again 
   // until audio is finished --maxim
-  tickle_audio_playing = true;
-  audioArray[random_choice].play();
-}
+    tickle_audio_playing = true;
+    audioArray[random_choice].play();
+  }
   // Draw shadow--jumping
   if (jumping) {
   drawEllipse(x + 75, y + 43, 100 - breathAmt, 4);
@@ -195,11 +213,11 @@ if (tickling && !tickle_audio_playing) {
   context.drawImage(images["hair"], x + 10, y - 138 - breathAmt);
 
   if (jumping) {
-  context.drawImage(images["rightArm-jump"], x + 128, y - 70 - breathAmt);
+  context.drawImage(images["rightArm-jump"], x + 129, y - 69 - breathAmt);
   } else if(tickling){
-  context.drawImage(images["rightArm-tickle"], x + 102, y - 40 - breathAmt);
+  context.drawImage(images["rightArm-tickle"], x + 103, y - 39 - breathAmt);
   }else {
-  context.drawImage(images["rightArm"], x + 128, y - 50 - breathAmt);
+  context.drawImage(images["rightArm"], x + 129, y - 49 - breathAmt);
   }
   
   if (jumping) {
@@ -212,15 +230,17 @@ if (tickling && !tickle_audio_playing) {
   
   drawEllipse(x + 67, y - 68 - breathAmt, 50, curEyeHeight, curEyeColor1); // Left Eye
   drawEllipse(x + 88, y - 68 - breathAmt, 50, curEyeHeight, curEyeColor1); // Right Eye
-
+if (recording) {
+  drawEllipse(x + 67, y - 68 - breathAmt, 5, 5, curEyeColor3); // Left Eye
+  drawEllipse(x + 88, y - 68 - breathAmt, 5, 5, curEyeColor3); // Right Eye
+}else{
   drawEllipse(x + 67, y - 68 - breathAmt, 5, 5, curEyeColor2); // Left Eye
   drawEllipse(x + 88, y - 68 - breathAmt, 5, 5, curEyeColor2); // Right Eye
-  
+}
 }
 
 function drawEllipse(centerX, centerY, width, height, color) {
   if (!tickling) {
-  //console.log(new Date())
   context.beginPath();
   
   context.moveTo(centerX, centerY - height/2);
@@ -241,7 +261,7 @@ function drawEllipse(centerX, centerY, width, height, color) {
   }
 }
 function setEyeColor(color) {
-    curEyeColor = color
+    curEyeColor = color;
 }
 
 function updateBreath() { 
@@ -290,6 +310,8 @@ function jump() {
     setTimeout(land, 500);
   }
   tickling=false;
+  firstMove=true;
+  setTimeout(resetFirstMove, waitingtime)
 }
 
 function land() {
@@ -300,17 +322,38 @@ function land() {
 function tickle(){
   if (!tickling)  {
     if (speedX  > 400 || speedX < -400 ) {
-        tickling=true;
-   // setTimeout(land,500);
-    };
-  
+      tickling=true;
+      firstMove=true;
+      setTimeout(resetFirstMove, waitingtime)
+    }
   }
+}
 
+function remind(){
+  if (!firstMove) {
+    var random_choicetip = Math.floor(Math.random() * audioArraytip.length);
+    console.log("Random tip: " + random_choicetip)
+    audioArraytip[random_choicetip].play();
+  };
+}
+
+function resetFirstMove() {
+  firstMove=false;
 }
 
 function unfocus(){
   jumping=false;
   tickling=false;
+}
+
+function record(){
+  if (!recording) {
+    recording = true ;
+  }
+}
+
+function stoprecord(){
+  recording = false;
 }
 
 /* Mouse speed code from http://stackoverflow.com/questions/6417036/track-mouse-speed-with-js --maxim */

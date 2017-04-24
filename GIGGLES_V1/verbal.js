@@ -13,6 +13,15 @@ var jumping=false;
 var tickling=false;
 
 
+var audioj1 = new Audio('audio/joke1.mp3');
+var audioj2 = new Audio('audio/joke2.mp3');
+var audioj3 = new Audio('audio/joke3.mp3');
+
+var audioArray2=[audioj1, audioj2, audioj3];
+
+var audio13 = new Audio('audio/jokeagain.mp3');
+var audio14 = new Audio('audio/bye.mp3');
+var audio15 = new Audio('audio/election.mp3');
 
 function startDictation() {
 
@@ -40,6 +49,7 @@ function startDictation() {
       /* Nonverbal actions at the end of listening */
       setTimeBetweenBlinks(slowTimeBetweenBlinks);
       jump(); //perform a nonverbal action from nonverbal.js
+      stoprecord();
 
       var bot_response = decide_response(user_said)
       speak(bot_response)
@@ -54,25 +64,6 @@ function startDictation() {
   }
 }
 
-
-// function jump() {
-//   if (!jumping) {
-//     jumping = true;
-//   }
-//   tickling=false;
-// }
-
-// function tickle() {
-//   if (!jumping) {
-//     tickling = true;
-//   }
-// }
-
-// function unfocus(){
-//   jumping=false;
-//   tickling=false;
-// }
-
 /* decide what to say.
  * input: transcription of what user said
  * output: what bot should say
@@ -80,27 +71,34 @@ function startDictation() {
 function decide_response(user_said) {
   var response;
 
-
-  console.log("SpeedX in decide_response is: " + speedX)
-
   if (user_said.toLowerCase().includes("hello") || user_said.toLowerCase().includes("hi")) {
     audio6.play();
     response=" ";
   } else if ((user_said.toLowerCase().includes("bad") || user_said.toLowerCase().includes("terrible") || user_said.toLowerCase().includes("not good"))) {
-    audio8.play();
     audio12.play();
      response=" ";
   } else if ((user_said.toLowerCase().includes("good") || user_said.toLowerCase().includes("nice") || user_said.toLowerCase().includes("wonderful"))) {
     audio7.play();
      response=" ";
-  } else if (user_said.toLowerCase().includes("haha")) {
+  } else if (user_said.toLowerCase().includes("haha") || user_said.toLowerCase().includes("hehe")) {
     audio10.play();
      response=" ";
-  }else if (user_said.toLowerCase().includes("bye") || user_said.toLowerCase().includes("see you")) {
-    audio11.play();
+  }else if (user_said.toLowerCase().includes("joke") && state == "initial") {
+     var random_choice2 = Math.floor(Math.random() * audioArray2.length)
+     audioArray2[random_choice2].play();
      response=" ";
-  }else if ( (speedX > 0 && speedX < 400) || (speedX < 0 && speedX > -400) ) {
-    response = "tickle harder!"
+     console.log("Ramdom joke:" + random_choice2);
+     state="jokeagain";
+  }else if(user_said.toLowerCase().includes("joke") && state == "jokeagain"){
+    audio13.play();
+    response=" ";
+    state = "initial";
+  }else if(user_said.toLowerCase().includes("election") || user_said.toLowerCase().includes("trump")){
+    audio15.play();
+    response=" ";
+  }else if (user_said.toLowerCase().includes("bye") || user_said.toLowerCase().includes("see you")) {
+    audio14.play();
+     response=" ";
   }else {
     audio9.play();
     response=" ";
@@ -108,18 +106,7 @@ function decide_response(user_said) {
   return response;
 }
 
-// function jumplaugh(){
-//   if (jumping) {
-//     audioArray[Math.floor(Math.random() * audioArray.length)].play();
-//   }
-// }
 
-// function ticklelaugh(){
-//   if(tickling){
-//     audio1.play();
-//     //audioArray[Math.floor(Math.random() * audioArray.length)].play();
-//   }
-// }
 /* Load and print voices */
 function printVoices() {
   // Fetch the available voices.
